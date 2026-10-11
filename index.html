@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>佛堂閉堂檢核表</title>
+  <!-- 引入 LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f7f9fa; margin: 0; padding: 20px; color: #333; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 500px; margin: 0 auto; }
+    h2 { color: #2c3e50; text-align: center; margin-top: 0; font-size: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+    .section-title { font-weight: bold; color: #7f8c8d; margin-top: 15px; margin-bottom: 8px; font-size: 14px; }
+    label { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 15px; cursor: pointer; }
+    input[type="checkbox"] { width: 20px; height: 20px; margin-right: 12px; accent-color: #27ae60; }
+    button { width: 100%; background-color: #27ae60; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; margin-top: 20px; cursor: pointer; }
+    button:disabled { background-color: #bdc3c7; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>📋 佛堂閉堂檢核表</h2>
+
+  <div class="section-title">1. 大殿與音控室</div>
+  <label><input type="checkbox" class="chk"> 香火與燭火已全數熄滅</label>
+  <label><input type="checkbox" class="chk"> 供水杯已收妥</label>
+  <label><input type="checkbox" class="chk"> 播經機已開啟</label>
+  <label><input type="checkbox" class="chk"> 音響、麥克風已關閉</label>
+  <label><input type="checkbox" class="chk"> 冷氣已關閉</label>
+  <label><input type="checkbox" class="chk"> 照明已關閉</label>
+
+  <div class="section-title">2. 公共區域(大寮/知客室/講堂/儲藏室/辦公室/寮房/淨房)</div>
+  <label><input type="checkbox" class="chk"> 桌面乾淨、垃圾已打包處置</label>
+  <label><input type="checkbox" class="chk"> 冷氣已關閉</label>
+  <label><input type="checkbox" class="chk"> 對外窗戶與安全門已鎖緊</label>
+  <label><input type="checkbox" class="chk"> 洗手台、水龍頭已關緊</label>
+  <label><input type="checkbox" class="chk"> 照明已關閉</label>
+  <label><input type="checkbox" class="chk"> 大門已關閉</label>
+
+  <button id="sendBtn" onclick="submitChecklist()">完成檢核並發送通報</button>
+</div>
+
+<script>
+  // 請填入您的 LIFF ID
+  const LIFF_ID = '2011972682-emYmcNpm';
+
+  async function main() {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) {
+      liff.login();
+    }
+  }
+  main();
+
+  async function submitChecklist() {
+    const checkboxes = document.querySelectorAll('.chk');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+    if (!allChecked) {
+      alert('請確認所有檢核項目皆已勾選完成！');
+      return;
+    }
+
+    const profile = await liff.getProfile();
+    const userName = profile.displayName;
+    const now = new Date();
+    const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const msg = `🔴【佛堂閉堂安全檢核完成】\n📅 時間：${timeStr}\n👤 值班同仁：${userName}\n\n`;
+
+    if (liff.isInClient()) {
+      try {
+        await liff.sendMessages([{ type: 'text', text: msg }]);
+        alert('檢核完成！訊息已發送至群組。');
+        liff.closeWindow();
+      } catch (err) {
+        alert('發送失敗，請確認是否已授予傳送訊息權限：' + err);
+      }
+    } else {
+      alert('請直接在 LINE 內部開啟此網頁。');
+    }
+  }
+</script>
+
+</body>
+</html>
